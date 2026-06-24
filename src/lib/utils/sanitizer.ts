@@ -16,8 +16,23 @@ const BLOCKED_TERMS = [
   "dropship", "mktp", "amzl", "amz", "cjdropship",
 ];
 
-// Strip blocked terms from any string
-function stripBlocked(text: string): string {
+// Common non-English phrases → English
+const TRANSLATIONS: { pattern: RegExp; english: string }[] = [
+  { pattern: /in transito|spedizione.*in transito/i, english: "Package in transit" },
+  { pattern: /consegnato|consegna.*effettuata/i, english: "Package delivered successfully" },
+  { pattern: /in consegna|tentativo.*consegna/i, english: "Package out for delivery" },
+  { pattern: /sdoganamento|dogana/i, english: "Package processing through customs" },
+  { pattern: /partito|partenza/i, english: "Package departed facility" },
+  { pattern: /arrivato|arrivo/i, english: "Package arrived at facility" },
+  { pattern: /preso in carico|accettato/i, english: "Package picked up from sender" },
+  { pattern: /etiqueta.*creada|etiqueta.*generada/i, english: "Shipment label created" },
+  { pattern: /en tr[aá]nsito/i, english: "Package in transit" },
+  { pattern: /entregado/i, english: "Package delivered successfully" },
+  { pattern: /im transit|in zustellung/i, english: "Package in transit" },
+  { pattern: /zugestellt/i, english: "Package delivered successfully" },
+  { pattern: /en cours de livraison/i, english: "Package out for delivery" },
+  { pattern: /livr[eé]/i, english: "Package delivered successfully" },
+];
   let result = text;
   for (const term of BLOCKED_TERMS) {
     result = result.replace(new RegExp(term, "gi"), "").trim();
@@ -41,6 +56,11 @@ function normalizeCarrierNote(text: string): string {
 
 export function sanitizeDescription(raw: string): string {
   if (!raw) return "Package status updated";
+
+  // Check for non-English and translate
+  for (const { pattern, english } of TRANSLATIONS) {
+    if (pattern.test(raw)) return english;
+  }
 
   // Strip blocked terms first
   let cleaned = hasBlocked(raw) ? stripBlocked(raw) : raw;

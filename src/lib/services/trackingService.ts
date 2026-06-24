@@ -92,31 +92,36 @@ function build17Events(raw: any): TrackingEvent[] {
 // ─── TrackingMore event builder ───────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildTMEvents(raw: any): TrackingEvent[] {
-  const checkpoints = raw?.origin_info?.trackinfo ?? raw?.destination_info?.trackinfo ?? [];
-  // Merge origin + destination trackinfo
+  // V4 API: events live in origin_info.trackinfo and destination_info.trackinfo
   const originEvents = raw?.origin_info?.trackinfo ?? [];
   const destEvents = raw?.destination_info?.trackinfo ?? [];
-  const allEvents = [...originEvents, ...destEvents];
 
-  if (allEvents.length === 0 && checkpoints.length === 0) return [];
+  // Also check top-level trackinfo (some responses)
+  const topEvents = raw?.trackinfo ?? [];
 
-  const events = allEvents.length > 0 ? allEvents : checkpoints;
+  const allEvents = [...originEvents, ...destEvents, ...topEvents];
 
-  return events
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((e: any) => {
-      const loc = sanitizeLocation(e.location ?? e.checkpoint_location ?? "");
+  console.log("[TrackingMore] event counts — origin:", originEvents.length, "dest:", destEvents.length, "top:", topEvents.length);
+
+  if (allEvents.length === 0) return [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return allEvents.map((e: any) => {
+      const rawDesc = e.tracking_detail ?? e.checkpoint_delivery_status ?? e.StatusDescription ?? "";
+      const rawLoc = e.location ?? e.checkpoint_location ?? e.StatusLocation ?? "";
+      const loc = sanitizeLocation(rawLoc);
       const parts = loc.split(",").map((p: string) => p.trim()).filter(Boolean);
+
       return {
-        timestamp: e.checkpoint_date ?? e.tracking_update_time ?? "",
-        description: sanitizeDescription(e.checkpoint_delivery_status ?? e.tracking_detail ?? ""),
+        timestamp: e.checkpoint_date ?? e.tracking_update_time ?? e.StatusDate ?? "",
+        description: sanitizeDescription(rawDesc),
         location: loc,
         city: parts[0] ?? "",
         country: parts[parts.length - 1] ?? "",
-        status: mapStatus(e.checkpoint_delivery_status ?? ""),
+        status: mapStatus(e.checkpoint_delivery_status ?? e.StatusCode ?? ""),
       };
     })
-    .filter((e: TrackingEvent) => e.description !== "")
+    .filter((e: TrackingEvent) => e.description !== "" && e.description !== "Package status updated")
     .sort((a: TrackingEvent, b: TrackingEvent) =>
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
@@ -212,7 +217,10 @@ export async function resolveTracking(trackingNumber: string): Promise<TrackingR
   if (process.env.TRACKINGMORE_API_KEY) {
     try {
       rawTM = await getTrackingMore(clean);
-      if (rawTM) eventsTM = buildTMEvents(rawTM);
+      if (rawTM) {
+      console.log("[TrackingMore] full raw:", JSON.stringify(rawTM, null, 2));
+      eventsTM = buildTMEvents(rawTM);
+    }
     } catch (err) {
       console.error("[TrackingMore] failed:", err);
     }
