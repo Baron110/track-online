@@ -1,4 +1,0 @@
-{
-  "/api/track/[trackingNumber]/route": "app/api/track/[trackingNumber]/route.js",
-  "/(root)/page": "app/(root)/page.js"
-}
