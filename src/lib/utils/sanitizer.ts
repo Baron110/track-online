@@ -1,9 +1,7 @@
 // Terms that must NEVER appear in user-facing output
 const BLOCKED_TERMS = [
-  // Marketplaces
   "aliexpress", "amazon", "shein", "temu", "wish", "ebay", "shopee",
   "lazada", "jd.com", "taobao", "tmall", "pinduoduo", "dhgate",
-  // Couriers to hide
   "cainiao", "yanwen", "yun express", "4px", "epacket", "cnexps",
   "cj packet", "cj dropshipping", "cj logistics", "speedx",
   "dhl", "fedex", "ups", "usps", "royal mail", "hermes", "evri",
@@ -11,12 +9,11 @@ const BLOCKED_TERMS = [
   "china post", "hongkong post", "singapore post",
   "deutsche post", "japan post", "india post",
   "australia post", "canada post", "new zealand post",
-  // Supplier/merchant terms
   "seller", "merchant", "vendor", "supplier",
   "dropship", "mktp", "amzl", "amz", "cjdropship",
 ];
 
-// Common non-English phrases → English
+// Non-English → English translations
 const TRANSLATIONS: { pattern: RegExp; english: string }[] = [
   { pattern: /in transito|spedizione.*in transito/i, english: "Package in transit" },
   { pattern: /consegnato|consegna.*effettuata/i, english: "Package delivered successfully" },
@@ -33,6 +30,8 @@ const TRANSLATIONS: { pattern: RegExp; english: string }[] = [
   { pattern: /en cours de livraison/i, english: "Package out for delivery" },
   { pattern: /livr[eé]/i, english: "Package delivered successfully" },
 ];
+
+function stripBlocked(text: string): string {
   let result = text;
   for (const term of BLOCKED_TERMS) {
     result = result.replace(new RegExp(term, "gi"), "").trim();
@@ -45,9 +44,7 @@ function hasBlocked(text: string): boolean {
   return BLOCKED_TERMS.some((t) => lower.includes(t));
 }
 
-// Normalize carrier note prefix — keep the actual message
 function normalizeCarrierNote(text: string): string {
-  // "Carrier note: Outbound in sorting center" → "Outbound in sorting center"
   return text
     .replace(/^carrier\s*note\s*:\s*/i, "")
     .replace(/^carrier\s*update\s*:\s*/i, "")
@@ -57,12 +54,12 @@ function normalizeCarrierNote(text: string): string {
 export function sanitizeDescription(raw: string): string {
   if (!raw) return "Package status updated";
 
-  // Check for non-English and translate
+  // Translate non-English first
   for (const { pattern, english } of TRANSLATIONS) {
     if (pattern.test(raw)) return english;
   }
 
-  // Strip blocked terms first
+  // Strip blocked terms
   let cleaned = hasBlocked(raw) ? stripBlocked(raw) : raw;
 
   // Normalize carrier note prefix
@@ -70,15 +67,12 @@ export function sanitizeDescription(raw: string): string {
 
   if (!cleaned) return "Package status updated";
 
-  // Capitalize first letter
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
 export function sanitizeLocation(raw: string): string {
   if (!raw) return "";
   if (!hasBlocked(raw)) return raw.trim();
-
-  // Strip blocked terms from location but keep place names
   const parts = raw.split(",").map((p) => p.trim());
   const clean = parts.filter((p) => !BLOCKED_TERMS.some((t) => p.toLowerCase().includes(t)));
   return clean.join(", ").trim();
