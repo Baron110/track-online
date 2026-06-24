@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TRACK.ONLINE | Global Shipment Intelligence",
+  title: "QUIN-TRACK | Global Logistics Intelligence",
   description: "Precision shipment tracking for the modern era. Track any package worldwide in real-time.",
   keywords: ["shipment tracking", "package tracker", "global logistics", "parcel tracking"],
   openGraph: {

@@ -27,9 +27,13 @@ export default function HomePage() {
       {/* ── HEADER ── */}
       <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm backdrop-saturate-150 transition-all duration-300">
         <nav className="flex justify-between items-center h-16 md:h-20 px-4 md:px-16 max-w-[1280px] mx-auto">
-          <span className="font-bold text-xl md:text-2xl text-on-background tracking-tight">
-            TRACK.ONLINE
-          </span>
+          <div className="flex flex-col leading-none">
+            <div className="flex items-baseline gap-0">
+              <span className="font-black text-[20px] md:text-[26px] text-on-background tracking-tight">QUIN-</span>
+              <span className="font-black text-[20px] md:text-[26px] text-secondary tracking-tight">TRACK</span>
+            </div>
+            <span className="text-[8px] md:text-[9px] font-bold tracking-[0.2em] text-secondary uppercase border-t border-secondary/40 pt-0.5 mt-0.5">Global Logistics</span>
+          </div>
           <div className="hidden md:flex items-center gap-8">
             <a className="text-secondary font-bold border-b-2 border-secondary pb-1 text-xs uppercase tracking-widest" href="#">Home</a>
             <a className="text-on-surface-variant hover:text-primary transition-colors text-xs uppercase tracking-widest" href="#">Track</a>
@@ -204,7 +208,13 @@ export default function HomePage() {
       <footer className="w-full py-12 md:py-8 bg-on-background border-t border-outline/10 text-background">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 px-4 md:px-16 max-w-[1280px] mx-auto mb-10 md:mb-16">
           <div className="sm:col-span-2 md:col-span-1">
-            <div className="text-[24px] font-bold text-background mb-4">TRACK.ONLINE</div>
+            <div className="flex flex-col leading-none mb-4">
+              <div className="flex items-baseline gap-0">
+                <span className="font-black text-[22px] text-background tracking-tight">QUIN-</span>
+                <span className="font-black text-[22px] text-secondary tracking-tight">TRACK</span>
+              </div>
+              <span className="text-[8px] font-bold tracking-[0.2em] text-secondary uppercase border-t border-secondary/40 pt-0.5 mt-0.5">Global Logistics</span>
+            </div>
             <p className="text-[13px] text-outline-variant max-w-xs leading-relaxed">
               Redefining shipment intelligence for the digital age. Precision tracking for every parcel, everywhere.
             </p>
@@ -236,7 +246,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="px-4 md:px-16 max-w-[1280px] mx-auto border-t border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[12px] text-outline-variant text-center md:text-left">© 2025 TRACK.ONLINE. Precision Logistics for the Modern Era.</p>
+          <p className="text-[12px] text-outline-variant text-center md:text-left">© 2025 QUIN-TRACK. Precision Logistics for the Modern Era.</p>
           <div className="flex gap-6">
             {["public", "alternate_email", "share"].map((i) => (
               <span key={i} className="material-symbols-outlined text-outline-variant hover:text-secondary cursor-pointer">{i}</span>

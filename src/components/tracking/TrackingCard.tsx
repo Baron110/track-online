@@ -48,7 +48,7 @@ export function TrackingCard({ data, onReset }: TrackingCardProps) {
           />
 
           {/* Header */}
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-6">
             <div>
               <h3 className="font-mono-label text-mono-label text-outline mb-1 uppercase tracking-widest">
                 Tracking Number
