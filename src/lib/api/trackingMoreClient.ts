@@ -10,42 +10,41 @@ function getHeaders() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTrackingMore(trackingNumber: string): Promise<any | null> {
+export async function getTrackingMore(trackingNumber: string, carrierCode?: string): Promise<any | null> {
   try {
-    // V4: POST to create = create & get in one call (real-time)
-    const res = await fetch(`${BASE_URL}/trackings/create`, {
+    // Step 1: Register with carrier code hint if available
+    const body: Record<string, string> = { tracking_number: trackingNumber };
+    if (carrierCode) body.courier_code = carrierCode;
+
+    const createRes = await fetch(`${BASE_URL}/trackings/create`, {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({ tracking_number: trackingNumber }),
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    const createJson = await createRes.json();
+    console.log("[TrackingMore] create code:", createJson?.meta?.code, "carrier:", carrierCode ?? "auto");
+
+    // Step 2: Wait then GET full tracking history
+    await new Promise((r) => setTimeout(r, 1000));
+
+    // Build GET URL
+    let getUrl = `${BASE_URL}/trackings/get?tracking_numbers=${encodeURIComponent(trackingNumber)}&lang=en`;
+    if (carrierCode) getUrl += `&courier_code=${encodeURIComponent(carrierCode)}`;
+
+    const getRes = await fetch(getUrl, {
+      method: "GET",
+      headers: getHeaders(),
       cache: "no-store",
     });
 
-    const json = await res.json();
-    console.log("[TrackingMore] response:", JSON.stringify(json, null, 2));
+    const getJson = await getRes.json();
+    console.log("[TrackingMore] GET response:", JSON.stringify(getJson, null, 2));
 
-    // If already exists, fetch it
-    if (json?.meta?.code === 4013) {
-      return await fetchExisting(trackingNumber);
-    }
-
-    if (!res.ok || !json?.data) return null;
-    return json.data;
+    const item = getJson?.data?.items?.[0];
+    return item ?? null;
   } catch (err) {
     console.error("[TrackingMore] error:", err);
-    return null;
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchExisting(trackingNumber: string): Promise<any | null> {
-  try {
-    const res = await fetch(
-      `${BASE_URL}/trackings/get?tracking_numbers=${encodeURIComponent(trackingNumber)}`,
-      { method: "GET", headers: getHeaders(), cache: "no-store" }
-    );
-    const json = await res.json();
-    return json?.data?.items?.[0] ?? null;
-  } catch {
     return null;
   }
 }
